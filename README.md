@@ -90,7 +90,7 @@ This project is open-source and available under the [MIT License](LICENSE).
 
 ##  Author
 
-Created by Hasan Tanjeer(https://github.com/yourusername)  
+Created by Hasan Tanjeer(https://github.com/hasantanjeer)  
 Google Apps Script | Workflow Automation | Sheet Optimization
 
 ---
