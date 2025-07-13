@@ -1,0 +1,49 @@
+function onEdit(e) {
+  const sheet = e.source.getActiveSheet();
+  const range = e.range;
+  const editedColumn = range.getColumn();
+  const editedRow = range.getRow();
+
+  const statusColumn = 13; // Column M = Courier Status
+  const timestampColumn = 18; // Column R = Last Updated Time (adjust as needed)
+  const sheetName = sheet.getName();
+
+  if (sheetName !== "All Orders") return;
+  if (editedColumn !== statusColumn || editedRow === 1) return;
+
+  const status = range.getValue();
+  const validStatuses = ["Pending", "Processing", "Completed", "Cancelled"];
+  if (!validStatuses.includes(status)) return;
+
+  //  Set timestamp
+  sheet.getRange(editedRow, timestampColumn).setValue(new Date());
+
+  const orderID = sheet.getRange(editedRow, 1).getValue(); // Column A = Order ID
+  const rowData = sheet.getRange(editedRow, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+  //  Remove from all other child sheets
+  validStatuses.forEach(statusSheetName => {
+    if (statusSheetName === status) return;
+    const otherSheet = e.source.getSheetByName(statusSheetName);
+    if (!otherSheet) return;
+
+    const data = otherSheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === orderID) {
+        otherSheet.deleteRow(i + 1);
+        break;
+      }
+    }
+  });
+
+  //  Create child sheet if not exist
+  let targetSheet = e.source.getSheetByName(status);
+  if (!targetSheet) {
+    targetSheet = e.source.insertSheet(status);
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues();
+    targetSheet.getRange(1, 1, 1, headers[0].length).setValues(headers);
+  }
+
+  //  Append updated row to correct sheet
+  targetSheet.appendRow(rowData);
+}
